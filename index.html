@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--
+/*************************************************************************
+* ADOBE CONFIDENTIAL
+* ___________________
+*
+* Copyright 2019 Adobe
+* All Rights Reserved.
+*
+* NOTICE: Adobe permits you to use, modify, and distribute this file in
+* accordance with the terms of the Adobe license agreement accompanying
+* it. If you have received this file from a source other than Adobe,
+* then your use, modification, or distribution of it requires the prior
+* written permission of Adobe. 
+**************************************************************************/
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="./ext.js"></script>
+    <script src="./lib/CSInterface.js"></script>
+    <script src="./lib/jquery-1.9.1.js"></script>
+    <script src="./lib/Vulcan.js"></script>
+    <link id="ppstyle" href="css/style.css" rel="stylesheet" type="text/css" />
+    <link id="ppstyle" href="css/all.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // For functions which require interaction at the JavaScript level, we provide these JQuery-based
+        // handlers, instead of directly invoking ExtendScript .This gives the JavaScript layer a chance
+        // to pass data into the ExtendScript layer, and process the results.
+
+        $("#openfolder").on("click", function(e) {
+          e.preventDefault();
+          var csInterface = new CSInterface();
+          var OSVersion = csInterface.getOSInformation();
+          var path = csInterface.getSystemPath(SystemPath.EXTENSION);
+
+          if (OSVersion) {
+            // The path always comes back with '/' path separators. Windows needs '\\'.
+            if (OSVersion.indexOf("Windows") >= 0) {
+              var sep = "\\";
+              path = path.replace(/\//g, sep);
+              window.cep.process.createProcess(
+                "C:\\Windows\\explorer.exe",
+                path
+              );
+            } else {
+              window.cep.process.createProcess("/usr/bin/open", path);
+            }
+          }
+        });
+
+        $("#newseqfrompreset").on("click", function(e) {
+          e.preventDefault();
+          var csInterface = new CSInterface();
+          var OSVersion = csInterface.getOSInformation();
+          var path = csInterface.getSystemPath(SystemPath.EXTENSION);
+
+          if (OSVersion) {
+            // The path always comes back with '/' path separators. Windows needs '\\'.
+            if (OSVersion.indexOf("Windows") >= 0) {
+              var sep = "\\\\";
+              path = path.replace(/\//g, sep);
+            } else {
+              var sep = "/";
+            }
+
+            // Build a String to pass the path to the script.
+            // (Sounds more complicated than it is.)
+
+            path = path + sep + "payloads" + sep + "PProPanel.sqpreset";
+
+            var pre = "$._PPP_.createSequenceFromPreset('";
+            var post = "'";
+            var postpost = ")";
+
+            var whole_megillah = pre + path + post + postpost;
+
+            csInterface.evalScript(whole_megillah);
+          }
+        });
+      });
+    </script>
+  </head>
+
+  <body onLoad="onLoaded()">
+    <a href="javascript:history.go(0)">Refresh panel</a>
+
+    <div>
+      <h3>Automate tools</h3>
+    </div>
+    <p></p>
+    <button class="controlBg textStyle" id="btn_PPRO72" onClick="">
+      Duplicate Video
+    </button>
+    <button class="controlBg textStyle" id="btn_PPRO75" onClick="">
+      Batch scale
+    </button>
+    <button class="controlBg textStyle" id="btn_PPRO75" onClick="">
+      Batch opacity
+    </button>
+    <p></p>
+    <hr />
+    <div>
+      <h3>Insert tools</h3>
+    </div>
+    <div style="display: inline-flex;">
+      <div id="buttonFileList">
+        <div id="insertList" style="display: inline;"></div>
+        <button
+          class="controlBg textStyle"
+          id="btn_PPRO75"
+          onclick="$('#fileButton').toggle()"
+        >
+          <i class="fas fa-cog"></i>
+        </button>
+      </div>
+    </div>
+    <div id="fileButton" style="display: flex;margin-top: 10px;">
+      <div style="display: inline-block;">
+        <select id="footageList" name="fruit" size="10" style="width: 10rem;">
+        </select>
+      </div>
+      <div style="display: inline-block">
+        <div style="display: grid;padding: .9rem;margin-top: 3rem;">
+          <button id="addToUse" class="controlBg textStyle mt-1">Add</button>
+          <button id="removeFromUse" class="controlBg textStyle">Remove</button>
+        </div>
+      </div>
+      <div style="display: inline-block;">
+        <select
+          id="buttonFootageList"
+          name="fruit"
+          size="10"
+          style="width: 10rem;"
+        >
+        </select>
+      </div>
+    </div>
+
+    <p></p>
+  </body>
+  <script>
+    var fileAvailable = [
+      { name: "File-1", use: false },
+      { name: "File-2", use: false },
+      { name: "File-3", use: false }
+    ];
+    $(function() {
+      $.getJSON("config.json", function(json) {
+        var result;
+        console.log("All done making your data smaller and prettier!");
+        reducedData = result;
+      });
+      // $.json
+      refreshFootageList();
+    });
+
+    $("#addToUse").click(function() {
+      var selected = $("#footageList")
+        .children("option:selected")
+        .val();
+      if (selected) {
+        fileAvailable.find(x => x.name === selected).use = true;
+        //console.log(fileAvailable);
+        refreshFootageList();
+      }
+      //
+    });
+
+    $("#removeFromUse").click(function() {
+      var selected = $("#buttonFootageList")
+        .children("option:selected")
+        .val();
+      if (selected) {
+        fileAvailable.find(x => x.name === selected).use = false;
+        //console.log(fileAvailable);
+        refreshFootageList();
+      }
+    });
+
+    function refreshFootageList() {
+      $("#footageList").empty();
+      $("#buttonFootageList").empty();
+      $("#insertList").empty();
+      fileAvailable.forEach(item => {
+        if (item.use === true) {
+          $("<button></button>")
+            .text(item["name"])
+            .addClass("btn-file")
+            .appendTo("#insertList");
+
+          $("<option></option>")
+            .val(item["name"])
+            .text(item["name"])
+            .appendTo("#buttonFootageList");
+        } else {
+          $("<option></option>")
+            .val(item["name"])
+            .text(item["name"])
+            .appendTo("#footageList");
+        }
+      });
+
+      var buttonUse = [{ name: "btn-1" }, { name: "btn-2" }, { name: "btn-3" }];
+    }
+
+    document.body.onbeforeunload = function() {
+      var csInterface = new CSInterface();
+      var OSVersion = csInterface.getOSInformation();
+      var appVersion = csInterface.hostEnvironment.appVersion;
+      var versionAsFloat = parseFloat(appVersion);
+
+      csInterface.evalScript("$._PPP_.closeLog()");
+
+      if (versionAsFloat < 10.3) {
+        var path =
+          "file:///Library/Application Support/Adobe/CEP/extensions/PProPanel/payloads/onbeforeunload.html";
+
+        if (OSVersion.indexOf("Windows") >= 0) {
+          path =
+            "file:///C:/Program%20Files%20(x86)/Common%20Files/Adobe/CEP/extensions/PProPanel/payloads/onbeforeunload.html";
+        }
+        csInterface.openURLInDefaultBrowser(path);
+      }
+    };
+
+    var createFolders = function() {
+      var csInterface = new CSInterface();
+      csInterface.callScript(
+        "$._PPP_",
+        "createDeepFolderStructure",
+        function(res) {
+          console.log("Successfully created folders!");
+        },
+        function(err) {
+          console.error(err);
+          alert(err.message);
+        },
+        ["This", "is", "a", "very", "deep", "folder", "structure"], // 1st argument
+        6 // 2nd argument
+      );
+    };
+  </script>
+</html>
