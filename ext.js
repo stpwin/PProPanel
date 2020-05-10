@@ -23,40 +23,40 @@ function onLoaded() {
   // Listen for event sent in response to rendering a sequence.
   csInterface.addEventListener(
     "com.adobe.csxs.events.PProPanelRenderEvent",
-    function(event) {
+    function (event) {
       alert(event.data);
     }
   );
 
   csInterface.addEventListener(
     "com.adobe.csxs.events.WorkspaceChanged",
-    function(event) {
+    function (event) {
       alert("New workspace selected: " + event.data);
     }
   );
 
   csInterface.addEventListener(
     "com.adobe.ccx.start.handleLicenseBanner",
-    function(event) {
+    function (event) {
       alert('User chose to go "Home", wherever that is...');
     }
   );
 
-  csInterface.addEventListener("ApplicationBeforeQuit", function(event) {
+  csInterface.addEventListener("ApplicationBeforeQuit", function (event) {
     csInterface.evalScript("$._PPP_.closeLog()");
   });
 
   // register for messages
   VulcanInterface.addMessageListener(
     VulcanMessage.TYPE_PREFIX + "com.DVA.message.sendtext",
-    function(message) {
+    function (message) {
       var str = VulcanInterface.getPayload(message);
       // You just received the text of every Text layer in the current AE comp.
     }
   );
-  csInterface.evalScript("$._PPP_.getVersionInfo()", myVersionInfoFunction);
-  csInterface.evalScript("$._PPP_.getActiveSequenceName()", myCallBackFunction);
-  csInterface.evalScript("$._PPP_.getUserName()", myUserNameFunction);
+  //csInterface.evalScript("$._PPP_.getVersionInfo()", myVersionInfoFunction);
+  //csInterface.evalScript("$._PPP_.getActiveSequenceName()", myCallBackFunction);
+  //csInterface.evalScript("$._PPP_.getUserName()", myUserNameFunction);
   csInterface.evalScript(
     "$._PPP_.getProjectProxySetting()",
     myGetProxyFunction
@@ -289,7 +289,7 @@ function reverseColor(color, delta) {
     {
       red: Math.abs(255 - color.red),
       green: Math.abs(255 - color.green),
-      blue: Math.abs(255 - color.blue)
+      blue: Math.abs(255 - color.blue),
     },
     delta
   );
