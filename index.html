@@ -23,12 +23,12 @@
     <script src="./lib/Vulcan.js"></script>
     <link id="ppstyle" href="css/style.css" rel="stylesheet" type="text/css" />
     <link id="ppstyle" href="css/all.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
       $(document).ready(function () {
         var csInterface = new CSInterface();
         csInterface.resizeContent(500, 500);
       });
-    </script>
+    </script> -->
   </head>
 
   <body onLoad="onLoaded()">
@@ -105,66 +105,6 @@
   </body>
 
   <script>
-    var fileAvailable = [];
-
-    //Automate tools
-    $("#duplicateBtn").click(function () {
-      var csInterface = new CSInterface();
-      csInterface.evalScript("$._my_functions.promptDuplicateClip()");
-    });
-
-    $("#batchScaleBtn").click(function () {
-      var csInterface = new CSInterface();
-      csInterface.evalScript("$._my_functions.promptBatchScale()");
-    });
-
-    $("#batchOpacityBtn").click(function () {
-      var csInterface = new CSInterface();
-      csInterface.evalScript("$._my_functions.promptBatchOpacity()");
-    });
-
-    $("#batchRotationBtn").click(function () {
-      var csInterface = new CSInterface();
-      csInterface.evalScript("$._my_functions.promptBatchRotation()");
-    });
-
-    $("#batchPositionBtn").click(function () {
-      var csInterface = new CSInterface();
-      csInterface.evalScript("$._my_functions.promptBatchPosition()");
-    });
-
-    var loadFiles = function () {
-      var csInterface = new CSInterface();
-      PlugPlugMyDocumentsPath = csInterface.getSystemPath(
-        SystemPath.MY_DOCUMENTS
-      );
-      var footagesPath = PlugPlugMyDocumentsPath + "/footages";
-      csInterface.evalScript(
-        `$._my_functions.evalFootages("${footagesPath}")`,
-        footagesCallback
-      );
-    };
-
-    function footagesCallback(files) {
-      files = files.split(",");
-      for (var i = 0; i < files.length; i++) {
-        var f = files[i];
-        const found = fileAvailable.findIndex((item) => item.path === f);
-        console.log(found);
-        if (found === -1) {
-          fileAvailable.push({
-            name: getNamWithoutExt(splitTest(f)),
-            path: f,
-            user: false,
-          });
-        }
-
-        // console.log(f);
-      }
-      // console.log(fileAvailable);
-      refreshFootageList();
-    }
-
     var getNamWithoutExt = function (filename) {
       return filename.split(".").slice(0, -1).join(".");
     };
@@ -173,10 +113,76 @@
       return str.split("\\").pop().split("/").pop();
     };
 
+    var footagesPath = "";
+    var fileAvailable = [];
+    
+
     $(function () {
+      // console.log(window.__adobe_cep__);
+      var csInterface = new CSInterface();
+      //Automate tools
+      $("#duplicateBtn").click(function () {
+        csInterface.evalScript("$._my_functions.promptDuplicateClip()");
+      });
+
+      $("#batchScaleBtn").click(function () {
+        // var csInterface = new CSInterface();
+        csInterface.evalScript("$._my_functions.promptBatchScale()");
+      });
+
+      $("#batchOpacityBtn").click(function () {
+        // var csInterface = new CSInterface();
+        csInterface.evalScript("$._my_functions.promptBatchOpacity()");
+      });
+
+      $("#batchRotationBtn").click(function () {
+        // var csInterface = new CSInterface();
+        csInterface.evalScript("$._my_functions.promptBatchRotation()");
+      });
+
+      $("#batchPositionBtn").click(function () {
+        // var csInterface = new CSInterface();
+        csInterface.evalScript("$._my_functions.promptBatchPosition()");
+      });
+
+      var loadFiles = function () {
+        // var csInterface = new CSInterface();
+        PlugPlugMyDocumentsPath = csInterface.getSystemPath(
+          SystemPath.MY_DOCUMENTS
+        );
+        footagesPath = PlugPlugMyDocumentsPath + "/footages";
+        // var path = decodeURI(window.__adobe_cep__.getSystemPath(SystemPath.MY_DOCUMENTS));
+        // alert(path);
+        csInterface.evalScript(
+          `$._my_functions.evalFootages("${footagesPath}")`,
+          footagesCallback
+        );
+      };
+
+      function footagesCallback(files) {
+        files = files.split(",");
+        for (var i = 0; i < files.length; i++) {
+          var f = decodeURI(files[i]);
+          if (!fileAvailable) return;
+          const _found = fileAvailable.findIndex((item) => item.path === f);
+          if (_found === -1) {
+            fileAvailable.push({
+              name: getNamWithoutExt(splitTest(f)),
+              path: f,
+              user: false,
+            });
+          }
+
+          // console.log(f);
+        }
+        // console.log(fileAvailable);
+        refreshFootageList();
+      }
+
       // createFolders();
+      // loadFiles();
       $.getJSON("config.json", function (json) {
-        fileAvailable = json.fileAvailable;
+        fileAvailable = json.fileAvailable || [];
         // console.log(json);
         loadFiles();
         // refreshFootageList();
@@ -198,7 +204,7 @@
     $("#addToUse").click(function () {
       var selected = $("#footageList").children("option:selected").val();
       if (selected) {
-        fileAvailable.find((x) => x.name === selected).use = true;
+        fileAvailable.find((x) => x && x.name === selected).use = true;
         //console.log(fileAvailable);
         refreshFootageList();
       }
@@ -220,12 +226,17 @@
       $("#footageList").empty();
       $("#buttonFootageList").empty();
       $("#insertList").empty();
-      fileAvailable.forEach((item) => {
+      fileAvailable.forEach((item, index) => {
         if (item.use === true) {
+          var fileName = splitTest(item["path"]);
+          // alert(fileName);
           $("<button></button>")
             .text(item["name"])
             .addClass("btn-file")
             .addClass("mt-1")
+            .attr("id", `footage-${index}`)
+            .data("path", `${footagesPath}/${fileName}`)
+            .bind("click", footageBtnClick)
             .appendTo("#insertList");
 
           $("<option></option>")
@@ -241,6 +252,22 @@
       });
     }
 
+    function footageBtnClick(e){
+      // alert($(this).text());
+      // var fileName = $(this).text();
+      var filePath = $(this).data("path");
+      // alert(filePath);
+      var csInterface = new CSInterface();
+      
+      // csInterface.evalScript(
+      //   `$._my_functions.importFootage('${filePath}')`
+      // );
+      csInterface.evalScript(
+        `$._my_functions.insertClipFromProject('${filePath}')`
+      );
+      
+    }
+
     // document.body.onbeforeunload = function () {
     //   var csInterface = new CSInterface();
     //   var OSVersion = csInterface.getOSInformation();
@@ -251,11 +278,11 @@
 
     //   if (versionAsFloat < 10.3) {
     //     var path =
-    //       "file:///Library/Application Support/Adobe/CEP/extensions/PProPanel/payloads/onbeforeunload.html";
+    //       "file:///Library/Application Support/Adobe/CEP/extensions/CuttingHelpers/payloads/onbeforeunload.html";
 
     //     if (OSVersion.indexOf("Windows") >= 0) {
     //       path =
-    //         "file:///C:/Program%20Files%20(x86)/Common%20Files/Adobe/CEP/extensions/PProPanel/payloads/onbeforeunload.html";
+    //         "file:///C:/Program%20Files%20(x86)/Common%20Files/Adobe/CEP/extensions/CuttingHelpers/payloads/onbeforeunload.html";
     //     }
     //     csInterface.openURLInDefaultBrowser(path);
     //   }
