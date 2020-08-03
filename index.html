@@ -54,7 +54,7 @@
     <p></p>
     <hr />
     <div>
-      <h3>Insert tools</h3>
+      <h3>Quick Insert</h3>
     </div>
     <div style="display: inline-flex;">
       <div id="buttonFileList">
@@ -71,7 +71,7 @@
           class="controlBg textStyle"
           onclick="javascript:history.go(0)"
         >
-          Refresh
+          <i class="fas fa-sync"></i>
         </button>
       </div>
     </div>
@@ -100,8 +100,23 @@
         </div>
       </div>
     </div>
-
     <p></p>
+    <hr />
+    <div>
+      <h3>Quick Mogrt</h3>
+    </div>
+    <div style="display: inline-flex;">
+      <div id="buttonFileList">
+        <div id="mogrtList" style="display: inline;"></div>
+        <button
+          id="refresh"
+          class="controlBg textStyle"
+          onclick="javascript:history.go(0)"
+        >
+          <i class="fas fa-sync"></i>
+        </button>
+      </div>
+    </div>
   </body>
 
   <script>
@@ -114,11 +129,11 @@
     };
 
     var footagesPath = "";
+    var mogrtPath = "";
     var fileAvailable = [];
     
 
     $(function () {
-      // console.log(window.__adobe_cep__);
       var csInterface = new CSInterface();
       //Automate tools
       $("#duplicateBtn").click(function () {
@@ -126,33 +141,26 @@
       });
 
       $("#batchScaleBtn").click(function () {
-        // var csInterface = new CSInterface();
         csInterface.evalScript("$._my_functions.promptBatchScale()");
       });
 
       $("#batchOpacityBtn").click(function () {
-        // var csInterface = new CSInterface();
         csInterface.evalScript("$._my_functions.promptBatchOpacity()");
       });
 
       $("#batchRotationBtn").click(function () {
-        // var csInterface = new CSInterface();
         csInterface.evalScript("$._my_functions.promptBatchRotation()");
       });
 
       $("#batchPositionBtn").click(function () {
-        // var csInterface = new CSInterface();
         csInterface.evalScript("$._my_functions.promptBatchPosition()");
       });
 
-      var loadFiles = function () {
-        // var csInterface = new CSInterface();
+      var loadFootageFiles = function () {
         PlugPlugMyDocumentsPath = csInterface.getSystemPath(
           SystemPath.MY_DOCUMENTS
         );
         footagesPath = PlugPlugMyDocumentsPath + "/footages";
-        // var path = decodeURI(window.__adobe_cep__.getSystemPath(SystemPath.MY_DOCUMENTS));
-        // alert(path);
         csInterface.evalScript(
           `$._my_functions.evalFootages("${footagesPath}")`,
           footagesCallback
@@ -172,23 +180,58 @@
               user: false,
             });
           }
-
-          // console.log(f);
         }
-        // console.log(fileAvailable);
         refreshFootageList();
       }
 
+      var loadMogrtFiles = function() {
+        PlugPlugMyDocumentsPath = csInterface.getSystemPath(
+          SystemPath.MY_DOCUMENTS
+        );
+        mogrtPath = PlugPlugMyDocumentsPath + "/mogrt";
+        csInterface.evalScript(
+          `$._my_functions.evalMogrt("${mogrtPath}")`,
+          mogrtCallback
+        );
+      };
+
+      function mogrtCallback(files){
+        $("#mogrtList").empty();
+        files = files.split(",");
+        for (var i = 0; i < files.length; i++) {
+          var file = decodeURI(files[i]);
+          // console.log(file);
+          var fileNameWithExt = splitTest(file);
+          var fileName = getNamWithoutExt(fileNameWithExt);
+          // alert(fileName);
+          $("<button></button>")
+            .text(fileName)
+            .addClass("btn-file")
+            .addClass("mt-1")
+            .attr("id", `mogrt-btn-${i}`)
+            .data("path", `${mogrtPath}/${fileNameWithExt}`)
+            .bind("click", mogrtBtnClick)
+            .appendTo("#mogrtList");
+
+        }
+      }
+
+      function mogrtBtnClick(e){
+        var filePath = $(this).data("path");
+        var csInterface = new CSInterface();
+        csInterface.evalScript(
+        `$._my_functions.importMogrt('${filePath}')`
+      );
+      }
+
       // createFolders();
-      // loadFiles();
       $.getJSON("config.json", function (json) {
         fileAvailable = json.fileAvailable || [];
         // console.log(json);
-        loadFiles();
-        // refreshFootageList();
+        loadFootageFiles();
+        loadMogrtFiles();
       });
-      // $.json
-      // refreshFootageList();
+
     });
 
     function saveSetting() {
@@ -253,19 +296,11 @@
     }
 
     function footageBtnClick(e){
-      // alert($(this).text());
-      // var fileName = $(this).text();
       var filePath = $(this).data("path");
-      // alert(filePath);
       var csInterface = new CSInterface();
-      
-      // csInterface.evalScript(
-      //   `$._my_functions.importFootage('${filePath}')`
-      // );
       csInterface.evalScript(
         `$._my_functions.insertClipFromProject('${filePath}')`
       );
-      
     }
 
     // document.body.onbeforeunload = function () {

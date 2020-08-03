@@ -12,6 +12,14 @@ $._my_functions = {
 		}
     return files;
 	},
+  evalMogrt: function(mogrtFolderPath) {
+		var folder = new Folder(mogrtFolderPath);
+    var files = [];
+		if (folder.exists) {
+      files.push(folder.getFiles("*.mogrt"));
+		}
+    return files;
+	},
   saveConfig: function(extensionPath, fileAvailable){
     // $.writeln(extensionPath + "\\test.json");
     var configFile = File(extensionPath + "\\config.json");
@@ -21,6 +29,17 @@ $._my_functions = {
     var encoded = JSON.stringify(jsonData);
     configFile.write(encoded);
     configFile.close();
+  },
+
+  importMogrt: function(fileName){
+    fileName = fileName.replace(/\//g,"\\");
+    // alert(fileName);
+    var numVTracks = app.project.activeSequence.videoTracks.numTracks;
+    var numATracks = app.project.activeSequence.audioTracks.numTracks;
+    var targetVTrack = numVTracks - 1;
+    var targetATrack = numATracks - 1;
+    var time = app.project.activeSequence.getPlayerPosition();
+    app.project.activeSequence.importMGT(fileName, time, targetVTrack, targetATrack);
   },
 
   importFootage: function(fileName){
@@ -35,7 +54,7 @@ $._my_functions = {
   insertClipFromProject: function(fileName){
     fileName = fileName.replace(/\//g,"\\");
     $._my_functions.importFootage(fileName);
-    
+
     var items = app.project.rootItem.findItemsMatchingMediaPath(fileName);
     if (items.length === 0){
       return;
