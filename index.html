@@ -1,19 +1,5 @@
 <!DOCTYPE html>
-<!--
-/*************************************************************************
-* ADOBE CONFIDENTIAL
-* ___________________
-*
-* Copyright 2019 Adobe
-* All Rights Reserved.
-*
-* NOTICE: Adobe permits you to use, modify, and distribute this file in
-* accordance with the terms of the Adobe license agreement accompanying
-* it. If you have received this file from a source other than Adobe,
-* then your use, modification, or distribution of it requires the prior
-* written permission of Adobe. 
-**************************************************************************/
--->
+
 <html>
   <head>
     <meta charset="utf-8" />
@@ -23,12 +9,6 @@
     <script src="./lib/Vulcan.js"></script>
     <link id="ppstyle" href="css/style.css" rel="stylesheet" type="text/css" />
     <link id="ppstyle" href="css/all.css" rel="stylesheet" type="text/css" />
-    <!-- <script type="text/javascript">
-      $(document).ready(function () {
-        var csInterface = new CSInterface();
-        csInterface.resizeContent(500, 500);
-      });
-    </script> -->
   </head>
 
   <body onLoad="onLoaded()">
@@ -137,7 +117,7 @@
       var csInterface = new CSInterface();
       //Automate tools
       $("#duplicateBtn").click(function () {
-        csInterface.evalScript("$._my_functions.promptDuplicateClip()");
+        csInterface.evalScript("$._my_functions.promptDuplicateClip()"); //เรียกคำสั่ง
       });
 
       $("#batchScaleBtn").click(function () {
@@ -200,10 +180,8 @@
         files = files.split(",");
         for (var i = 0; i < files.length; i++) {
           var file = decodeURI(files[i]);
-          // console.log(file);
           var fileNameWithExt = splitTest(file);
           var fileName = getNamWithoutExt(fileNameWithExt);
-          // alert(fileName);
           $("<button></button>")
             .text(fileName)
             .addClass("btn-file")
@@ -302,25 +280,5 @@
         `$._my_functions.insertClipFromProject('${filePath}')`
       );
     }
-
-    // document.body.onbeforeunload = function () {
-    //   var csInterface = new CSInterface();
-    //   var OSVersion = csInterface.getOSInformation();
-    //   var appVersion = csInterface.hostEnvironment.appVersion;
-    //   var versionAsFloat = parseFloat(appVersion);
-
-    //   csInterface.evalScript("$._PPP_.closeLog()");
-
-    //   if (versionAsFloat < 10.3) {
-    //     var path =
-    //       "file:///Library/Application Support/Adobe/CEP/extensions/CuttingHelpers/payloads/onbeforeunload.html";
-
-    //     if (OSVersion.indexOf("Windows") >= 0) {
-    //       path =
-    //         "file:///C:/Program%20Files%20(x86)/Common%20Files/Adobe/CEP/extensions/CuttingHelpers/payloads/onbeforeunload.html";
-    //     }
-    //     csInterface.openURLInDefaultBrowser(path);
-    //   }
-    // };
   </script>
 </html>
